@@ -96,18 +96,62 @@ uv add --dev jupyter
   docker-compose up
 
   ***Run the Containerized Ingestionn***
-    
     #bash
+    docker run -it \
+  --network=01-docker-terraform_default \
+  taxi_ingest:v001 \
+  ingest_green_taxi_data.py \
+    --pg-user=elad \
+    --pg-pass=elad \
+    --pg-host=pgdatabase \
+    --pg-port=5432 \
+    --pg-db=ny_taxi \
+    --target-table=green_taxi_data \
+    --url="https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2025-11.parquet"
+
+    docker run -it \
+  --network=01-docker-terraform_default \
+  taxi_ingest:v001 \
+  ingest_taxi_zone.py \
+    --pg-user=elad \
+    --pg-pass=elad \
+    --pg-host=pgdatabase \
+    --pg-port=5432 \
+    --pg-db=ny_taxi \
+    --target-table=taxi_zones \
+    --chunksize=250
+    --url="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_zone_lookup.csv"
 
 
-    docker run -it taxi_ingest:v001 \
-    ingest_green_taxi_data.py \
-        --pg-user=elad \
-        --pg-pass=elad \
-        --pg-host=pgdatabase \
-        --pg-port=5432 \
-        --pg-db=ny_taxi \
-        --target-table=taxi_zones \
-        --url=""
+
+## Question 3:
+
+**Answer:** The correct answer is 8007.
+
+select count(*) from 
+public.green_taxi_data a
+left join
+public.taxi_zones b
+on a."PULocationID" = b."LocationID"
+where trip_distance <= 1
+and EXTRACT(MONTH FROM  "lpep_pickup_datetime") = 11
+and EXTRACT(YEAR FROM  "lpep_pickup_datetime") = 2025
+
+## Question 4:
+
+**Answer:** The correct answer is 2025-11-14
+
+select  CAST(lpep_pickup_datetime AS DATE) AS  "DATE",  max(trip_distance) AS "MAX_DATE"
+from 
+public.green_taxi_data a
+left join
+public.taxi_zones b
+on a."PULocationID" = b."LocationID"
+where trip_distance < 100
+group by CAST(lpep_pickup_datetime AS DATE)
+ORDER BY  "MAX_DATE" DESC
 
 
+## Question 5:
+
+**Answer:** The correct answer is 
