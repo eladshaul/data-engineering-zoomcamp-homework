@@ -189,3 +189,4 @@ and EXTRACT(YEAR FROM  "lpep_pickup_datetime") = 2025
 and b."Zone" = 'East Harlem North'
 group by c."Zone"
 order by "max_tip" desc
+
