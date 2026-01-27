@@ -154,4 +154,38 @@ ORDER BY  "MAX_DATE" DESC
 
 ## Question 5:
 
-**Answer:** The correct answer is 
+**Answer:** The correct answer is East Harlem North
+
+select b."Zone", sum(total_amount) "sum_total_amount" 
+from 
+public.green_taxi_data a
+left join
+public.taxi_zones b
+on a."PULocationID" = b."LocationID"
+where 1=1
+and EXTRACT(MONTH FROM  "lpep_pickup_datetime") = 11
+and EXTRACT(YEAR FROM  "lpep_pickup_datetime") = 2025
+and EXTRACT(day FROM  "lpep_pickup_datetime") = 18
+group by b."Zone"
+order by "sum_total_amount" desc
+
+
+## Question 6:
+
+**Answer:** The correct answer is Yorkville West
+
+select c."Zone", max(tip_amount) "max_tip" 
+from 
+public.green_taxi_data a
+left join
+public.taxi_zones b
+on a."PULocationID" = b."LocationID"
+left join
+public.taxi_zones c
+on a."DOLocationID" = c."LocationID"
+where 1=1
+and EXTRACT(MONTH FROM  "lpep_pickup_datetime") = 11
+and EXTRACT(YEAR FROM  "lpep_pickup_datetime") = 2025
+and b."Zone" = 'East Harlem North'
+group by c."Zone"
+order by "max_tip" desc
