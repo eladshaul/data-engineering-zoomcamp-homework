@@ -37,92 +37,110 @@ wget https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_z
 ```
 
 **install Python package and project manager - UV**
+
 ```bash
 pip install uv
 ```
+
 **initialize a Python project with uv**
+
 ```bash
 uv init --python=3.13
 ```
+
 **Checking Python Versions in the virtual environment**
+
 ```bash
 uv run which python
 uv run python -V
 ```
+
 **Adding Dependencies**
+
 ```bash
 uv add pandas pyarrow tqdm click
 uv add sqlalchemy psycopg2-binary
 ```
+
 **Adding dev Dependencies**
+
 ```bash
 uv add --dev pgcli
 uv add --dev jupyter
 ```
+
 **Create data ingesttion script file**
 
-    ```bash
-    uv run jupyter notebook
-    ```
-  ***Data sets exploration***
-    ```bash
-    uv run jupyter nbconvert --to=script data_exploration.ipynb
-    ```
-    #### Attached  - data_exploration.py
+```bash
+uv run jupyter notebook
+```
 
-  ***Creating Data ingestion scripts***
+**Data sets exploration**
+```bash
+uv run jupyter nbconvert --to=script data_exploration.ipynb
+```
+Attached  - data_exploration.py
 
-    #### Attached  - ingest_green_taxi_data.py
-    #### Attached  - ingest_taxi_zone.py
+**Creating Data ingestion scripts**
 
-  ***Creating dockerfile to creat docker image for data pipeline ingestion***
+Attached  - ingest_green_taxi_data.py
+Attached  - ingest_taxi_zone.py
 
-    #### Attached - Dockerfile
+**Creating dockerfile to creat docker image for data pipeline ingestion**
 
-  ***Build***
-    ```bash
-    docker build -t taxi_ingest:v001 .
-    ```
+Attached - Dockerfile
 
-  ***Creating docker-compose to launch Postgres and PgAdmin containers***
+**Build**
+
+```bash
+docker build -t taxi_ingest:v001 .
+```
+
+**Creating docker-compose to launch Postgres and PgAdmin containers**
     
-    ***Creating virtual Docker network***
-    ```bash
-    docker network create pg-network
-    ```
-    #### Attached - docker-compose.yaml
+**Creating virtual Docker network**
 
-   ***Run Docker-compose***
-  ```bash 
-  docker-compose up
-  ```
-  ***Run the Containerized Ingestionn***
-   ```bash
-    docker run -it \
-  --network=01-docker-terraform_default \
-  taxi_ingest:v001 \
-  ingest_green_taxi_data.py \
-    --pg-user=elad \
-    --pg-pass=elad \
-    --pg-host=pgdatabase \
-    --pg-port=5432 \
-    --pg-db=ny_taxi \
-    --target-table=green_taxi_data \
-    --url="https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2025-11.parquet"
+```bash
+docker network create pg-network
+```
 
-    docker run -it \
-  --network=01-docker-terraform_default \
-  taxi_ingest:v001 \
-  ingest_taxi_zone.py \
-    --pg-user=elad \
-    --pg-pass=elad \
-    --pg-host=pgdatabase \
-    --pg-port=5432 \
-    --pg-db=ny_taxi \
-    --target-table=taxi_zones \
-    --chunksize=250
-    --url="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_zone_lookup.csv"
-    ```
+Attached - docker-compose.yaml
+
+**Run Docker-compose**
+
+```bash 
+docker-compose up
+```
+
+**Run the Containerized Ingestionn**
+
+```bash
+docker run -it \
+--network=01-docker-terraform_default \
+taxi_ingest:v001 \
+ingest_green_taxi_data.py \
+--pg-user=elad \
+--pg-pass=elad \
+--pg-host=pgdatabase \
+--pg-port=5432 \
+--pg-db=ny_taxi \
+--target-table=green_taxi_data \
+--url="https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2025-11.parquet"
+
+docker run -it \
+--network=01-docker-terraform_default \
+taxi_ingest:v001 \
+ingest_taxi_zone.py \
+--pg-user=elad \
+--pg-pass=elad \
+--pg-host=pgdatabase \
+--pg-port=5432 \
+--pg-db=ny_taxi \
+--target-table=taxi_zones \
+--chunksize=250
+--url="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_zone_lookup.csv"
+```
+
 ***
 
 ## Question 4:
