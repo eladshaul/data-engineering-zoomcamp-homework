@@ -79,16 +79,17 @@ uv run jupyter notebook
 ```bash
 uv run jupyter nbconvert --to=script data_exploration.ipynb
 ```
-Attached  - data_exploration.py
+***Attached  - data_exploration.py***
 
 **Creating Data ingestion scripts**
 
-Attached  - ingest_green_taxi_data.py
-Attached  - ingest_taxi_zone.py
+***Attached Attached  - ingest_green_taxi_data.py***
+
+***Attached   - ingest_taxi_zone.py***
 
 **Creating dockerfile to creat docker image for data pipeline ingestion**
 
-Attached - Dockerfile
+***Attached  - Dockerfile***
 
 **Build**
 
@@ -104,7 +105,7 @@ docker build -t taxi_ingest:v001 .
 docker network create pg-network
 ```
 
-Attached - docker-compose.yaml
+***Attached  - docker-compose.yaml***
 
 **Run Docker-compose**
 
