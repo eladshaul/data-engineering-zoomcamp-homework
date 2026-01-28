@@ -1,13 +1,16 @@
+# Data Engineering Zoomcamp 2026 - Module 1 Homework
+
+This repository contains the solution for the first module of the Data Engineering Zoomcamp. The project focuses on containerizing a data ingestion pipeline using Docker, Postgres, and Python.
 
 ## Question 1: 
 
 **Command executed:**
-# bash
+```bash
 
 docker run -it --entrypoint=bash --rm python:3.13
 
 **Inside the container:**
-# bash
+```bash
 
 pip --version
 
@@ -30,42 +33,42 @@ The version of pip is **25.3**.
 
 **Download Data Sets**
 
-# bash
+```bash
 wget https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2025-11.parquet
 wget https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_zone_lookup.csv
 
 
 **install Python package and project manager - UV**
-# bash
+```bash
 pip install uv
 
 **initialize a Python project with uv**
-# bash
+```bash
 uv init --python=3.13
 
 **Checking Python Versions in the virtual environment**
-# bash
+```bash
 uv run which python
 uv run python -V
 
 **Adding Dependencies**
-# bash
+```bash
 uv add pandas pyarrow tqdm click
 uv add sqlalchemy psycopg2-binary
 
 **Adding dev Dependencies**
-# bash
+```bash
 uv add --dev pgcli
 uv add --dev jupyter
 
 
 **Create data ingesttion script file**
 
-    # bash
+    ```bash
     uv run jupyter notebook
 
   ***Data sets exploration***
-    # bash
+    ```bash
     uv run jupyter nbconvert --to=script data_exploration.ipynb
 
     # Attached  - data_exploration.py
@@ -80,23 +83,23 @@ uv add --dev jupyter
     # Attached - Dockerfile
 
   ***Build***
-    #bash
+    ```bash
     docker build -t taxi_ingest:v001 .
 
   ***Creating docker-compose to launch Postgres and PgAdmin containers***
     
     ***Creating virtual Docker network***
-    #bash
+    ```bash
     docker network create pg-network
 
     # Attached - docker-compose.yaml
 
    ***Run Docker-compose***
-  #bash 
+  ```bash 
   docker-compose up
 
   ***Run the Containerized Ingestionn***
-    #bash
+   ```bash
     docker run -it \
   --network=01-docker-terraform_default \
   taxi_ingest:v001 \
