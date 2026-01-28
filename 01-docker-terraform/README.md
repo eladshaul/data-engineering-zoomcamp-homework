@@ -6,18 +6,15 @@ This repository contains the solution for the first module of the Data Engineeri
 
 **Command executed:**
 ```bash
-
 docker run -it --entrypoint=bash --rm python:3.13
-
+```
 **Inside the container:**
 ```bash
-
 pip --version
-
+```
 **Answer:**
 The version of pip is **25.3**.
 
-***
 
 ## Question 2:
 
