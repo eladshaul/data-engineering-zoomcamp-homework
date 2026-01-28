@@ -27,7 +27,7 @@ The version of pip is **25.3**.
 
 ***
 
-## Question 3:
+## Prepare the Data:
 
 **Download Data Sets**
 
@@ -143,9 +143,9 @@ ingest_taxi_zone.py \
 
 ***
 
-## Question 4:
+## Question 3:
 
-**Answer:** The correct answer is 8007.
+**Answer:** The correct answer is **8007**.
 ```sql
 select count(*) from 
 public.green_taxi_data a
@@ -158,9 +158,9 @@ and EXTRACT(YEAR FROM  "lpep_pickup_datetime") = 2025
 ```
 ***
 
-## Question 5:
+## Question 4:
 
-**Answer:** The correct answer is 2025-11-14
+**Answer:** The correct answer is **2025-11-14**
 ```sql
 select  CAST(lpep_pickup_datetime AS DATE) AS  "DATE",  max(trip_distance) AS "MAX_DATE"
 from 
@@ -174,9 +174,9 @@ ORDER BY  "MAX_DATE" DESC
 ```
 ***
 
-## Question 6:
+## Question 5:
 
-**Answer:** The correct answer is East Harlem North
+**Answer:** The correct answer is **East Harlem North**
 ```sql
 select b."Zone", sum(total_amount) "sum_total_amount" 
 from 
@@ -193,9 +193,9 @@ order by "sum_total_amount" desc
 ```
 ***
 
-## Question 7:
+## Question 6:
 
-**Answer:** The correct answer is Yorkville West
+**Answer:** The correct answer is **Yorkville West**
 ```sql
 select c."Zone", max(tip_amount) "max_tip" 
 from 
