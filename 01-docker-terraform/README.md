@@ -15,6 +15,7 @@ pip --version
 **Answer:**
 The version of pip is **25.3**.
 
+***
 
 ## Question 2:
 
@@ -33,68 +34,68 @@ The version of pip is **25.3**.
 ```bash
 wget https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2025-11.parquet
 wget https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_zone_lookup.csv
-
+```
 
 **install Python package and project manager - UV**
 ```bash
 pip install uv
-
+```
 **initialize a Python project with uv**
 ```bash
 uv init --python=3.13
-
+```
 **Checking Python Versions in the virtual environment**
 ```bash
 uv run which python
 uv run python -V
-
+```
 **Adding Dependencies**
 ```bash
 uv add pandas pyarrow tqdm click
 uv add sqlalchemy psycopg2-binary
-
+```
 **Adding dev Dependencies**
 ```bash
 uv add --dev pgcli
 uv add --dev jupyter
-
-
+```
 **Create data ingesttion script file**
 
     ```bash
     uv run jupyter notebook
-
+    ```
   ***Data sets exploration***
     ```bash
     uv run jupyter nbconvert --to=script data_exploration.ipynb
-
-    # Attached  - data_exploration.py
+    ```
+    #### Attached  - data_exploration.py
 
   ***Creating Data ingestion scripts***
 
-    # Attached  - ingest_green_taxi_data.py
-    # Attached  - ingest_taxi_zone.py
+    #### Attached  - ingest_green_taxi_data.py
+    #### Attached  - ingest_taxi_zone.py
 
   ***Creating dockerfile to creat docker image for data pipeline ingestion***
 
-    # Attached - Dockerfile
+    #### Attached - Dockerfile
 
   ***Build***
     ```bash
     docker build -t taxi_ingest:v001 .
+    ```
 
   ***Creating docker-compose to launch Postgres and PgAdmin containers***
     
     ***Creating virtual Docker network***
     ```bash
     docker network create pg-network
-
-    # Attached - docker-compose.yaml
+    ```
+    #### Attached - docker-compose.yaml
 
    ***Run Docker-compose***
   ```bash 
   docker-compose up
-
+  ```
   ***Run the Containerized Ingestionn***
    ```bash
     docker run -it \
@@ -121,13 +122,13 @@ uv add --dev jupyter
     --target-table=taxi_zones \
     --chunksize=250
     --url="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_zone_lookup.csv"
-
+    ```
 ***
 
 ## Question 4:
 
 **Answer:** The correct answer is 8007.
-
+```sql
 select count(*) from 
 public.green_taxi_data a
 left join
@@ -136,13 +137,13 @@ on a."PULocationID" = b."LocationID"
 where trip_distance <= 1
 and EXTRACT(MONTH FROM  "lpep_pickup_datetime") = 11
 and EXTRACT(YEAR FROM  "lpep_pickup_datetime") = 2025
-
+```
 ***
 
 ## Question 5:
 
 **Answer:** The correct answer is 2025-11-14
-
+```sql
 select  CAST(lpep_pickup_datetime AS DATE) AS  "DATE",  max(trip_distance) AS "MAX_DATE"
 from 
 public.green_taxi_data a
@@ -152,13 +153,13 @@ on a."PULocationID" = b."LocationID"
 where trip_distance < 100
 group by CAST(lpep_pickup_datetime AS DATE)
 ORDER BY  "MAX_DATE" DESC
-
+```
 ***
 
 ## Question 6:
 
 **Answer:** The correct answer is East Harlem North
-
+```sql
 select b."Zone", sum(total_amount) "sum_total_amount" 
 from 
 public.green_taxi_data a
@@ -171,13 +172,13 @@ and EXTRACT(YEAR FROM  "lpep_pickup_datetime") = 2025
 and EXTRACT(day FROM  "lpep_pickup_datetime") = 18
 group by b."Zone"
 order by "sum_total_amount" desc
-
+```
 ***
 
 ## Question 7:
 
 **Answer:** The correct answer is Yorkville West
-
+```sql
 select c."Zone", max(tip_amount) "max_tip" 
 from 
 public.green_taxi_data a
@@ -193,4 +194,4 @@ and EXTRACT(YEAR FROM  "lpep_pickup_datetime") = 2025
 and b."Zone" = 'East Harlem North'
 group by c."Zone"
 order by "max_tip" desc
-
+```
