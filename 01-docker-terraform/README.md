@@ -17,7 +17,7 @@ pip --version
 **Answer:**
 The version of pip is **25.3**.
 
-
+***
 
 ## Question 2:
 
@@ -27,7 +27,7 @@ The version of pip is **25.3**.
 - **Hostname:** In a Docker Compose network, services communicate using the service name defined in the YAML file (in this case, `db`). 
 - **Port:** Since `pgadmin` and `db` are in the same network, they communicate via the container's internal port (`5432`).
 
-
+***
 
 ## Question 3:
 
@@ -125,9 +125,9 @@ uv add --dev jupyter
     --chunksize=250
     --url="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_zone_lookup.csv"
 
+***
 
-
-## Question 3:
+## Question 4:
 
 **Answer:** The correct answer is 8007.
 
@@ -140,7 +140,9 @@ where trip_distance <= 1
 and EXTRACT(MONTH FROM  "lpep_pickup_datetime") = 11
 and EXTRACT(YEAR FROM  "lpep_pickup_datetime") = 2025
 
-## Question 4:
+***
+
+## Question 5:
 
 **Answer:** The correct answer is 2025-11-14
 
@@ -154,8 +156,9 @@ where trip_distance < 100
 group by CAST(lpep_pickup_datetime AS DATE)
 ORDER BY  "MAX_DATE" DESC
 
+***
 
-## Question 5:
+## Question 6:
 
 **Answer:** The correct answer is East Harlem North
 
@@ -172,8 +175,9 @@ and EXTRACT(day FROM  "lpep_pickup_datetime") = 18
 group by b."Zone"
 order by "sum_total_amount" desc
 
+***
 
-## Question 6:
+## Question 7:
 
 **Answer:** The correct answer is Yorkville West
 
