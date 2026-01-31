@@ -287,7 +287,19 @@ SELECT count(*) FROM `project-ac733521-06f8-46e1-91a.zoomcamp.green_tripdata`
 
 ## Question 5: 
 
-**Answer:** The correct hostname and port are **db:5432**.
+**Answer:** The correct hostname and port are **1,925,152**.
+
+Execute flow in Kestra
+
+[gcp_taxi_inc_21.yaml](./gcp_taxi_inc_21.yaml)
+
+Run Query in BigQuey
+
+```sql
+SELECT count(*) FROM `project-ac733521-06f8-46e1-91a.zoomcamp.yellow_tripdata_2021_03` 
+```
+
+
 
 ***
 
