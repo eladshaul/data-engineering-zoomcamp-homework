@@ -242,7 +242,7 @@ variables:
 
 ## Question 3: 
 
-**Answer:** The correct hostname and port are **24,648,499**.
+**Answer:** The number of rows for the Yellow Taxi data for all CSV files in the year 2020 are **24,648,499**.
 
 Truncate old data from table
 
@@ -265,7 +265,23 @@ SELECT count(*) FROM `project-ac733521-06f8-46e1-91a.zoomcamp.yellow_tripdata`
 
 ## Question 4: 
 
-**Answer:** The correct hostname and port are **db:5432**.
+**Answer:** The number of rows for the Green Taxi data for all CSV files in the year 2020 are **1,734,051**.
+
+Truncate old data from table
+
+```sql
+truncate table `project-ac733521-06f8-46e1-91a.zoomcamp.green_tripdata` 
+```
+
+Execute flow in Kestra
+
+[gcp_taxi_sch.yaml](./gcp_taxi_sch.yaml)
+
+Run Query in BigQuey
+
+```sql
+SELECT count(*) FROM `project-ac733521-06f8-46e1-91a.zoomcamp.green_tripdata` 
+```
 
 ***
 
