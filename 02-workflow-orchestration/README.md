@@ -242,22 +242,23 @@ variables:
 
 ## Question 3: 
 
-**Answer:** The correct hostname and port are **db:5432**.
+**Answer:** The correct hostname and port are **24,648,499**.
 
-
-
-
-
-
-
-
-
+Truncate old data from table
 
 ```sql
 truncate table `project-ac733521-06f8-46e1-91a.zoomcamp.yellow_tripdata` 
 ```
 
+Execute flow in Kestra
 
+[gcp_taxi_sch.yaml](./gcp_taxi_sch.yaml)
+
+Run Query in BigQuey
+
+```sql
+SELECT count(*) FROM `project-ac733521-06f8-46e1-91a.zoomcamp.yellow_tripdata` 
+```
 
 
 ***
