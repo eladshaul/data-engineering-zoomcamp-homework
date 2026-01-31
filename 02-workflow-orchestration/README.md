@@ -200,13 +200,65 @@ Execute flow in Kestra
 
 ## Question 2: 
 
-**Answer:** The correct hostname and port are **db:5432**.
+**Answer:** The rendered value is **green_tripdata_2020-04.csv**.
+
+According to this part of the flow cod, 
+The value of :
+1. inputs.taxi is green.
+2. inputs.year is 2020.
+3. inputs.month is 04.
+
+The foramat is  {{inputs.taxi}}_tripdata_{{inputs.year}}-{{inputs.month}}.csv
+
+```YAML
+inputs:
+  - id: taxi
+    type: SELECT
+    displayName: Select taxi type
+    values: [yellow, green]
+    defaults: green
+
+  - id: year
+    type: SELECT
+    displayName: Select year
+    values: ["2019", "2020"]
+    defaults: "2019"
+    allowCustomValue: true # allows you to type 2021 from the UI for the homework 🤗
+
+  - id: month
+    type: SELECT
+    displayName: Select month
+    values: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+    defaults: "01"
+
+variables:
+  file: "{{inputs.taxi}}_tripdata_{{inputs.year}}-{{inputs.month}}.csv"
+  gcs_file: "gs://{{kv('GCP_BUCKET_NAME')}}/{{vars.file}}"
+  table: "{{kv('GCP_DATASET')}}.{{inputs.taxi}}_tripdata_{{inputs.year}}_{{inputs.month}}"
+  data: "{{outputs.extract.outputFiles[inputs.taxi ~ '_tripdata_' ~ inputs.year ~ '-' ~ inputs.month ~ '.csv']}}"
+  ```
 
 ***
 
 ## Question 3: 
 
 **Answer:** The correct hostname and port are **db:5432**.
+
+
+
+
+
+
+
+
+
+
+```sql
+truncate table `project-ac733521-06f8-46e1-91a.zoomcamp.yellow_tripdata` 
+```
+
+
+
 
 ***
 
