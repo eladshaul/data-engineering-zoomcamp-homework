@@ -299,10 +299,16 @@ Run Query in BigQuey
 SELECT count(*) FROM `project-ac733521-06f8-46e1-91a.zoomcamp.yellow_tripdata_2021_03` 
 ```
 
-
-
 ***
 
 ## Question 6: 
 
-**Answer:** The correct hostname and port are **db:5432**.
+**Answer:** **Add a timezone property set to UTC-5 in the Schedule trigger configuration**.
+
+```YAML
+triggers:
+  - id: daily_schedule
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 9 * * *"
+    timezone: America/New_York
+```

@@ -2,3 +2,8 @@
 *.csv
 .venv/
 __pycache__/
+
+
+
+service-account.json
+.env*
