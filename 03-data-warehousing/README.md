@@ -2,313 +2,189 @@
 
 This repository contains the solution for the third module of the Data Engineering Zoomcamp. The project focuses on working with BigQuery and Google Cloud Storage.
 
-## Infrastructure Setup
 
-**Creating docker-compose**
+## Infrastructure Setup - load the data into GCS bucket
 
-1.Installing Kestra
-2.PgAdmin
-3.Postgres database
-
-```YAML
-volumes:
-  ny_taxi_postgres_data:
-    driver: local
-  kestra_postgres_data:
-    driver: local
-  kestra_data:
-    driver: local
-
-services:
-  pgdatabase:
-    image: postgres:18
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: ny_taxi
-    ports:
-      - "5432:5432"
-    volumes:
-      - ny_taxi_postgres_data:/var/lib/postgresql
-    depends_on:
-      kestra:
-        condition: service_started
-
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=root
-    ports:
-      - "8085:80"
-    depends_on:
-      pgdatabase:
-        condition: service_started
-
-  kestra_postgres:
-    image: postgres:18
-    volumes:
-      - kestra_postgres_data:/var/lib/postgresql
-    environment:
-      POSTGRES_DB: kestra
-      POSTGRES_USER: kestra
-      POSTGRES_PASSWORD: k3str4
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-
-  kestra:
-    image: kestra/kestra:v1.1
-    pull_policy: always
-    user: "root"
-    command: server standalone
-    volumes:
-      - kestra_data:/app/storage
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /tmp/kestra-wd:/tmp/kestra-wd
-    env_file: .env_encoded  
-    environment:
-      KESTRA_CONFIGURATION: |
-        datasources:
-          postgres:
-            url: jdbc:postgresql://kestra_postgres:5432/kestra
-            driverClassName: org.postgresql.Driver
-            username: kestra
-            password: k3str4
-        kestra:
-          server:
-            basicAuth:
-              username: "admin@kestra.io" # it must be a valid email address
-              password: Admin1234!
-          repository:
-            type: postgres
-          storage:
-            type: local
-            local:
-              basePath: "/app/storage"
-          queue:
-            type: postgres
-          tasks:
-            tmpDir:
-              path: /tmp/kestra-wd/tmp
-          url: http://localhost:8080/
-    ports:
-      - "8080:8080"
-      - "8081:8081"
-    depends_on:
-      kestra_postgres:
-        condition: service_started
-    
-```
+```python
+import os
+import sys
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from google.cloud import storage
+from google.api_core.exceptions import NotFound, Forbidden
+import time
 
 
-**Add Service Account as a Secret**
+# Change this to your bucket name
+BUCKET_NAME = "kestra-zoomcamp-elad-demo"
 
-Encoding GCP credentionals using base64
+# If you authenticated through the GCP SDK you can comment out these two lines
+CREDENTIALS_FILE = "gcs.json"
+client = storage.Client.from_service_account_json(CREDENTIALS_FILE)
+# If commented initialize client with the following
+# client = storage.Client(project='zoomcamp-mod3-datawarehouse')
 
-```bash
-echo SECRET_GCP_SERVICE_ACCOUNT=$(cat service-account.json | base64 -w 0) >> .env_encoded
-```
 
-Set the env_encoded file inside of your docker-compose.yml:
+BASE_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-"
+MONTHS = [f"{i:02d}" for i in range(1, 7)]
+DOWNLOAD_DIR = "."
 
-```yaml
-kestra:
-  env_file: .env_encoded
-```
+CHUNK_SIZE = 8 * 1024 * 1024
 
-**Running the containers**
+os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
-```bash
-cd 02-workflow-orchestration
-docker compose up -d
-```
+bucket = client.bucket(BUCKET_NAME)
 
-**Seting up GCP KV**
 
-```YAML
-id: 06_gcp_kv
-namespace: zoomcamp
+def download_file(month):
+    url = f"{BASE_URL}{month}.parquet"
+    file_path = os.path.join(DOWNLOAD_DIR, f"yellow_tripdata_2024-{month}.parquet")
 
-tasks:
-  - id: gcp_project_id
-    type: io.kestra.plugin.core.kv.Set
-    key: GCP_PROJECT_ID
-    kvType: STRING
-    value: project-ac733521-06f8-46e1-91a
-  - id: gcp_location
+    try:
+        print(f"Downloading {url}...")
+        urllib.request.urlretrieve(url, file_path)
+        print(f"Downloaded: {file_path}")
+        return file_path
+    except Exception as e:
+        print(f"Failed to download {url}: {e}")
+        return None
 
-    type: io.kestra.plugin.core.kv.Set
-    key: GCP_LOCATION
-    kvType: STRING
-    value: europe-west2
 
-  - id: gcp_bucket_name
-    type: io.kestra.plugin.core.kv.Set
-    key: GCP_BUCKET_NAME
-    kvType: STRING
-    value: kestra-zoomcamp-elad-demo 
+def create_bucket(bucket_name):
+    try:
+        # Get bucket details
+        bucket = client.get_bucket(bucket_name)
 
-  - id: gcp_dataset
-    type: io.kestra.plugin.core.kv.Set
-    key: GCP_DATASET
-    kvType: STRING
-    value: zoomcamp
-```
+        # Check if the bucket belongs to the current project
+        project_bucket_ids = [bckt.id for bckt in client.list_buckets()]
+        if bucket_name in project_bucket_ids:
+            print(
+                f"Bucket '{bucket_name}' exists and belongs to your project. Proceeding..."
+            )
+        else:
+            print(
+                f"A bucket with the name '{bucket_name}' already exists, but it does not belong to your project."
+            )
+            sys.exit(1)
 
-**Creating GCS bucket and BigQuery dataset**
+    except NotFound:
+        # If the bucket doesn't exist, create it
+        bucket = client.create_bucket(bucket_name)
+        print(f"Created bucket '{bucket_name}'")
+    except Forbidden:
+        # If the request is forbidden, it means the bucket exists but you don't have access to see details
+        print(
+            f"A bucket with the name '{bucket_name}' exists, but it is not accessible. Bucket name is taken. Please try a different bucket name."
+        )
+        sys.exit(1)
 
-```Yaml
-id: 07_gcp_setup
-namespace: zoomcamp
 
-tasks:
-  - id: create_gcs_bucket
-    type: io.kestra.plugin.gcp.gcs.CreateBucket
-    ifExists: SKIP
-    storageClass: REGIONAL
-    name: "{{kv('GCP_BUCKET_NAME')}}" 
+def verify_gcs_upload(blob_name):
+    return storage.Blob(bucket=bucket, name=blob_name).exists(client)
 
-  - id: create_bq_dataset
-    type: io.kestra.plugin.gcp.bigquery.CreateDataset
-    name: "{{kv('GCP_DATASET')}}"
-    ifExists: SKIP
 
-pluginDefaults:
-  - type: io.kestra.plugin.gcp
-    values:
-      serviceAccount: "{{secret('GCP_SERVICE_ACCOUNT')}}"
-      projectId: "{{kv('GCP_PROJECT_ID')}}"
-      location: "{{kv('GCP_LOCATION')}}"
-      bucket: "{{kv('GCP_BUCKET_NAME')}}"
-```
+def upload_to_gcs(file_path, max_retries=3):
+    blob_name = os.path.basename(file_path)
+    blob = bucket.blob(blob_name)
+    blob.chunk_size = CHUNK_SIZE
+
+    create_bucket(BUCKET_NAME)
+
+    for attempt in range(max_retries):
+        try:
+            print(f"Uploading {file_path} to {BUCKET_NAME} (Attempt {attempt + 1})...")
+            blob.upload_from_filename(file_path)
+            print(f"Uploaded: gs://{BUCKET_NAME}/{blob_name}")
+
+            if verify_gcs_upload(blob_name):
+                print(f"Verification successful for {blob_name}")
+                return
+            else:
+                print(f"Verification failed for {blob_name}, retrying...")
+        except Exception as e:
+            print(f"Failed to upload {file_path} to GCS: {e}")
+
+        time.sleep(5)
+
+    print(f"Giving up on {file_path} after {max_retries} attempts.")
+
+
+if __name__ == "__main__":
+    create_bucket(BUCKET_NAME)
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        file_paths = list(executor.map(download_file, MONTHS))
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        executor.map(upload_to_gcs, filter(None, file_paths))  # Remove None values
+
+    print("All files processed and verified.")
+    ```
 
 ***
 
+## Creating external table referring to gcs path
+
+```sql
+CREATE OR REPLACE EXTERNAL TABLE `nytaxi.external_yellow_tripdata`
+OPTIONS (
+  format = 'PARQUET',
+  uris = ['gs://kestra-zoomcamp-elad-demo/yellow_tripdata_2024-*.parquet']
+);
+```
+
+## Create a non partitioned table from external table
+
+```sql
+CREATE OR REPLACE TABLE nytaxi.yellow_tripdata_non_partitioned01_06_24 AS
+SELECT * FROM nytaxi.external_yellow_tripdata;
+```
+
+
+
 ## Question 1: 
 
-**Answer:** The uncompressed file size of yellow_tripdata_2020-12.csv is **134.5 MiB**.
+**Answer:** The count of records for the Yellow Taxi Data is **20,332,093**.
 
-Execute flow in Kestra
-
-[gcp_taxi.yaml](./gcp_taxi.yaml)
+```sql
+SELECT count(*) FROM nytaxi.yellow_tripdata_non_partitioned01_06_24 
+```
 
 
 ***
 
 ## Question 2: 
 
-**Answer:** The rendered value is **green_tripdata_2020-04.csv**.
+**Answer:** The estimated amount of data that will be read is **0 MB for the External Table and 155.12 MB for the Materialized Table**.
 
-According to this part of the flow cod, 
-The value of :
-1. inputs.taxi is green.
-2. inputs.year is 2020.
-3. inputs.month is 04.
-
-The foramat is  {{inputs.taxi}}_tripdata_{{inputs.year}}-{{inputs.month}}.csv
-
-```YAML
-inputs:
-  - id: taxi
-    type: SELECT
-    displayName: Select taxi type
-    values: [yellow, green]
-    defaults: green
-
-  - id: year
-    type: SELECT
-    displayName: Select year
-    values: ["2019", "2020"]
-    defaults: "2019"
-    allowCustomValue: true # allows you to type 2021 from the UI for the homework 🤗
-
-  - id: month
-    type: SELECT
-    displayName: Select month
-    values: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    defaults: "01"
-
-variables:
-  file: "{{inputs.taxi}}_tripdata_{{inputs.year}}-{{inputs.month}}.csv"
-  gcs_file: "gs://{{kv('GCP_BUCKET_NAME')}}/{{vars.file}}"
-  table: "{{kv('GCP_DATASET')}}.{{inputs.taxi}}_tripdata_{{inputs.year}}_{{inputs.month}}"
-  data: "{{outputs.extract.outputFiles[inputs.taxi ~ '_tripdata_' ~ inputs.year ~ '-' ~ inputs.month ~ '.csv']}}"
-  ```
+```sql
+SELECT count(distinct PULocationID) FROM nytaxi.yellow_tripdata_non_partitioned01_06_24 
+SELECT count(distinct PULocationID) FROM nytaxi.external_yellow_tripdata
+```
 
 ***
 
 ## Question 3: 
 
-**Answer:** The number of rows for the Yellow Taxi data for all CSV files in the year 2020 are **24,648,499**.
-
-Truncate old data from table
+**Answer:**  **BigQuery is a columnar database, and it only scans the specific columns requested in the query. Querying two columns (PULocationID, DOLocationID) requires reading more data than querying one column (PULocationID), leading to a higher estimated number of bytes processed.**.
 
 ```sql
-truncate table `project-ac733521-06f8-46e1-91a.zoomcamp.yellow_tripdata` 
+SELECT  PULocationID FROM nytaxi.yellow_tripdata_non_partitioned01_06_24 
+SELECT  PULocationID,DOLocationID FROM nytaxi.yellow_tripdata_non_partitioned01_06_24 
 ```
-
-Execute flow in Kestra
-
-[gcp_taxi_sch.yaml](./gcp_taxi_sch.yaml)
-
-Run Query in BigQuey
-
-```sql
-SELECT count(*) FROM `project-ac733521-06f8-46e1-91a.zoomcamp.yellow_tripdata` 
-```
-
 
 ***
 
 ## Question 4: 
 
-**Answer:** The number of rows for the Green Taxi data for all CSV files in the year 2020 are **1,734,051**.
-
-Truncate old data from table
+**Answer:** The number of records are **8,333**.
 
 ```sql
-truncate table `project-ac733521-06f8-46e1-91a.zoomcamp.green_tripdata` 
-```
-
-Execute flow in Kestra
-
-[gcp_taxi_sch.yaml](./gcp_taxi_sch.yaml)
-
-Run Query in BigQuey
-
-```sql
-SELECT count(*) FROM `project-ac733521-06f8-46e1-91a.zoomcamp.green_tripdata` 
+SELECT  count(*) FROM nytaxi.yellow_tripdata_non_partitioned01_06_24 where fare_amount = 0
 ```
 
 ***
 
-## Question 5: 
 
-**Answer:** The correct hostname and port are **1,925,152**.
 
-Execute flow in Kestra
 
-[gcp_taxi_inc_21.yaml](./gcp_taxi_inc_21.yaml)
-
-Run Query in BigQuey
-
-```sql
-SELECT count(*) FROM `project-ac733521-06f8-46e1-91a.zoomcamp.yellow_tripdata_2021_03` 
-```
-
-***
-
-## Question 6: 
-
-**Answer:** **Add a timezone property set to UTC-5 in the Schedule trigger configuration**.
-
-```YAML
-triggers:
-  - id: daily_schedule
-    type: io.kestra.plugin.core.trigger.Schedule
-    cron: "0 9 * * *"
-    timezone: America/New_York
-```
