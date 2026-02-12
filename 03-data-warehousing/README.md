@@ -186,5 +186,51 @@ SELECT  count(*) FROM nytaxi.yellow_tripdata_non_partitioned01_06_24 where fare_
 ***
 
 
+## Question 5: 
+
+**Answer:** The number of records are **Partition by tpep_dropoff_datetime and Cluster on VendorID**.
 
 
+```sql
+CREATE OR REPLACE TABLE nytaxi.yellow_tripdata_partitioned_clustered
+PARTITION BY DATE(tpep_pickup_datetime)
+CLUSTER BY VendorID AS
+SELECT * FROM nytaxi.external_yellow_tripdata;
+```
+
+***
+
+## Question 6: 
+
+**Answer:** The number of records are **310.24 MB for non-partitioned table and 26.84 MB for the partitioned table**.
+
+
+```sql
+select distinct VendorID
+from nytaxi.yellow_tripdata_partitioned_clustered
+where tpep_pickup_datetime between  '2024-03-01' and '2024-03-15'
+
+select distinct VendorID
+from nytaxi.yellow_tripdata_non_partitioned01_06_24 
+where tpep_pickup_datetime between  '2024-03-01' and '2024-03-15'
+```
+
+***
+
+## Question 7: 
+
+**Answer:** The number of records are **GCP Bucket**.
+
+
+***
+
+## Question 8: 
+
+**Answer:** The number of records are ****.
+
+
+```sql
+
+```
+
+***
