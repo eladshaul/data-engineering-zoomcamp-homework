@@ -7,3 +7,8 @@ __pycache__/
 
 service-account.json
 .env*
+
+*.duckdb
+**/target/
+**/logs/
+**/dbt_packages/
