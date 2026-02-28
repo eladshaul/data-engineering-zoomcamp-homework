@@ -12,3 +12,7 @@ service-account.json
 **/target/
 **/logs/
 **/dbt_packages/
+.bruin.yml
+logs/runs
+logs/*.log
+*.py[cod].bruin.yml

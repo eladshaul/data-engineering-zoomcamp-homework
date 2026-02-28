@@ -1,0 +1,11 @@
+name: nyc_taxi
+schedule: "daily"  # TODO: Set the desired schedule for your pipeline (e.g., "daily", "weekly", "0 0 * * *" for cron).
+start_date: "2022-01-01"  # TODO: Set the desired start date for your pipeline (e.g., "2022-01-01").
+default_connections:
+  duckdb: duckdb-default
+variables:
+  taxi_types:
+    type: array
+    items:
+      type: string
+    default:  ["yellow"]
