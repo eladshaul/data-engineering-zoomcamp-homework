@@ -86,7 +86,7 @@ FROM "taxi_rides"
 
 What is the total amount of money generated in tips?  
 
-****.
+**$6,063.41**.
 
 ```sql
 SELECT sum(tip_amt) tips_total_amount
